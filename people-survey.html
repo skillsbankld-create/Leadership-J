@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<title>ImpactLens · People Survey</title>
+<style>
+  :root{
+    --bg0:#050716; --bg1:#0b0e2c; --surface:rgba(255,255,255,.03); --surface2:rgba(255,255,255,.05);
+    --hair:rgba(255,255,255,.14); --hair2:rgba(255,255,255,.07);
+    --soft:#eaf2ff; --muted:#9fb0cc; --gold:#FFBC3A; --teal:#40BDA9;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    min-height:100vh; font-family:Arial,Helvetica,sans-serif; color:var(--soft);
+    background:radial-gradient(120% 90% at 50% -10%, rgba(255,188,58,.10), transparent 55%), linear-gradient(180deg,var(--bg1),var(--bg0));
+    -webkit-font-smoothing:antialiased;
+  }
+  .ps-shell{ max-width:640px; margin:0 auto; padding:28px 18px 60px; }
+  .ps-top{ display:flex; align-items:center; justify-content:space-between; gap:12px; padding-bottom:16px; border-bottom:1px solid var(--hair2); margin-bottom:22px; }
+  .ps-brand{ display:flex; flex-direction:column; line-height:1.1; }
+  .ps-brand strong{ font-size:16px; letter-spacing:.02em; color:var(--soft); }
+  .ps-brand span{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:800; color:var(--gold); margin-top:3px; }
+  .ps-langbtn{ background:none; border:1px solid var(--hair); color:var(--soft); border-radius:10px; padding:7px 14px; font-weight:800; font-size:12px; cursor:pointer; min-height:38px; }
+  .ps-langbtn:hover{ border-color:var(--gold); }
+  .ps-card{ padding:22px 20px; border:1px solid var(--hair); border-radius:20px; background:var(--surface); margin-bottom:16px; }
+  .ps-eyebrow{ font-size:11px; letter-spacing:.14em; text-transform:uppercase; font-weight:800; color:var(--gold); }
+  .ps-h1{ font:500 24px/1.25 Georgia,serif; margin:6px 0 4px; color:#fff; }
+  .ps-sub{ margin:0; color:var(--muted); font-size:14px; line-height:1.55; }
+  .ps-sub strong{ color:var(--soft); }
+  .ps-field{ margin-top:16px; display:flex; flex-direction:column; gap:6px; }
+  .ps-field label{ font-size:12.5px; font-weight:800; color:var(--muted); }
+  .ps-field input,.ps-field select,.ps-field textarea{
+    min-height:46px; border-radius:12px; border:1px solid var(--hair); background:var(--surface2);
+    color:var(--soft); padding:0 14px; font:inherit; font-size:14.5px;
+  }
+  /* Fix #1 — the native dropdown list renders on a light system background, so
+     the option text must be dark for readable contrast (the closed control
+     stays light-on-dark to match the form). */
+  .ps-field select{ color:var(--soft); }
+  .ps-field select option{ color:#14203a; background:#ffffff; }
+  .ps-field select option:checked,.ps-field select option:hover{ color:#14203a; background:#e6edf9; }
+  .ps-field textarea{ min-height:80px; padding:10px 14px; resize:vertical; }
+  .ps-q{ padding:18px 0; border-top:1px solid var(--hair2); }
+  .ps-q:first-of-type{ border-top:0; }
+  .ps-q-title{ font-weight:800; font-size:15px; color:var(--soft); margin-bottom:4px; }
+  .ps-q-text{ margin:0 0 12px; color:var(--muted); font-size:13.5px; line-height:1.55; }
+  .ps-scale{ display:flex; gap:8px; flex-wrap:wrap; }
+  .ps-seg{ flex:1 1 auto; min-width:64px; min-height:46px; padding:6px 8px; border-radius:12px; cursor:pointer; text-align:center;
+    border:1px solid var(--hair); background:var(--surface2); color:var(--soft); font-weight:700; font-size:12px; line-height:1.3; }
+  .ps-seg[data-v="no"]{ min-width:78px; color:var(--muted); }
+  .ps-seg:hover{ border-color:rgba(255,188,58,.5); }
+  .ps-seg.active{ border-color:var(--gold); background:color-mix(in srgb, var(--gold) 22%, transparent); color:#fff; box-shadow:0 0 14px color-mix(in srgb, var(--gold) 30%, transparent); }
+  .ps-submitrow{ margin-top:18px; text-align:end; }
+  .ps-btn{ min-height:48px; padding:0 26px; border-radius:12px; border:1px solid var(--gold); background:linear-gradient(180deg,rgba(255,188,58,.9),rgba(230,158,20,.95));
+    color:#161200; font-weight:800; font-size:14.5px; cursor:pointer; }
+  .ps-btn:disabled{ opacity:.55; cursor:default; }
+  .ps-btn.ghost{ background:none; border-color:var(--hair); color:var(--soft); }
+  .ps-error{ padding:30px 22px; border:1px dashed var(--hair); border-radius:18px; text-align:center; color:var(--muted); font-weight:600; }
+  .ps-loading{ padding:40px 22px; text-align:center; color:var(--muted); }
+  .ps-done{ text-align:center; padding:20px 0; }
+  .ps-done-icon{ font-size:44px; margin-bottom:10px; }
+  .ps-legend{ display:flex; flex-wrap:wrap; gap:8px 16px; margin-top:12px; font-size:11.5px; color:var(--muted); }
+  .ps-legend b{ color:var(--soft); }
+  html[dir="rtl"] .ps-submitrow{ text-align:start; }
+  @media(max-width:520px){ .ps-seg{ min-width:44%; } }
+</style>
+</head>
+<body>
+<div class="ps-shell">
+  <header class="ps-top">
+    <div class="ps-brand"><strong>ImpactLens</strong><span id="psTag">PEOPLE SURVEY</span></div>
+    <button type="button" class="ps-langbtn" id="psLangBtn">العربية</button>
+  </header>
+  <main id="psMain"><div class="ps-loading" id="psLoading">Loading…</div></main>
+</div>
+
+<!-- Supabase backend (single self-contained file: SDK via CDN, config
+     inlined below). Migrated from Firebase. This page never queries any
+     table directly — it calls two Postgres RPC functions
+     (get_survey_invitation / submit_survey_response) defined in schema.sql,
+     which is the ONLY way a public, unauthenticated visitor can reach this
+     data (see the security note in schema.sql, section 8). -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.js"></script>
+<script>
+/**
+ * supabase-config.js — Living Leadership / ImpactLens Supabase configuration.
+ * Direct replacement for js/firebase-config.js. Same shape, same
+ * usernameToEmail() convention, same "never blank-page on misconfiguration"
+ * guarantee — only the backend underneath changed.
+ *
+ * This is the ONLY file where Supabase project configuration lives. Do NOT
+ * duplicate these values in leader/index.html or manager/index.html.
+ *
+ * Load order (see the two commented-out lines already sitting in
+ * manager/index.html and leader/index.html): the Supabase SDK from its CDN,
+ * then this config file, then the matching manager/leader API file \u2014
+ * config always before the API file that depends on it.
+ */
+
+const SUPABASE_CONFIG = {
+  url: "https://vtjvucrnczdekaxpbfsy.supabase.co",
+  // "Publishable key" in Supabase's newer key naming — this is the direct
+  // equivalent of the old `anon` key and of Firebase's apiKey: safe to ship
+  // in a browser app as long as Row Level Security is enabled on every
+  // table (it is — see 001_schema_and_rls.sql). Never put the "Secret key"
+  // (sb_secret_...) here; that one is server-only.
+  anonKey: "sb_publishable_-KrlOkjmflaOPw0bWZSwIw_MOPE9lsi",
+};
+
+const SUPABASE_CONFIG_READY = !!(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey);
+const SUPABASE_CONFIG_MISSING = ["url", "anonKey"].filter(function (k) { return !SUPABASE_CONFIG[k]; });
+
+var supabaseClient = null;
+var SUPABASE_INIT_ERROR = null;
+
+try {
+  if (typeof window.supabase === "undefined") {
+    SUPABASE_INIT_ERROR = "The Supabase SDK did not load. Check the network connection, and make sure this page is served over http(s) rather than opened directly from the file system.";
+  } else if (!SUPABASE_CONFIG_READY) {
+    SUPABASE_INIT_ERROR = "Supabase is not configured yet (missing: " + SUPABASE_CONFIG_MISSING.join(", ") +
+      "). Copy the production js/supabase-config.js into this build, or paste the values from the Supabase dashboard (Settings \u2192 API Keys).";
+  } else {
+    supabaseClient = window.supabase.createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+      auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
+    });
+  }
+} catch (e) {
+  SUPABASE_INIT_ERROR = "Supabase failed to initialise: " + ((e && e.message) ? e.message : String(e));
+}
+
+if (SUPABASE_INIT_ERROR) console.error("[Supabase config] " + SUPABASE_INIT_ERROR);
+
+// ---------------------------------------------------------------------------
+// Username \u2192 internal Supabase Auth email converter.
+// UNCHANGED convention from Firebase: users always type their short username.
+// Supabase Auth still needs a real-shaped email address internally, so the
+// same "username@living-leadership.internal" pattern is reused verbatim \u2014
+// existing usernames keep working exactly as they did before.
+// ---------------------------------------------------------------------------
+function usernameToEmail(username) {
+  return username.trim().toLowerCase() + "@living-leadership.internal";
+}
+
+// ---------------------------------------------------------------------------
+// Small shared helpers used by both manager-supabase-api.js and
+// leader-supabase-api.js to translate between Postgres's timestamptz columns
+// and the plain-millis-number convention almost everything in this app was
+// written against (Date.now() everywhere in the original Firebase adapters).
+// The ONE exception is peopleSurveyResponses2.submittedAt, which was a real
+// Firestore server Timestamp object (.toDate()/.toMillis()/.seconds) \u2014
+// toFirestoreTimestampShim() below reproduces that exact interface so any
+// existing UI code calling those methods keeps working unmodified.
+// ---------------------------------------------------------------------------
+function toMillis(pgTimestamp) {
+  return pgTimestamp ? new Date(pgTimestamp).getTime() : null;
+}
+function toFirestoreTimestampShim(pgTimestamp) {
+  const ms = new Date(pgTimestamp).getTime();
+  return {
+    toDate: function () { return new Date(ms); },
+    toMillis: function () { return ms; },
+    seconds: Math.floor(ms / 1000),
+    nanoseconds: (ms % 1000) * 1e6,
+    valueOf: function () { return ms; },
+    toString: function () { return new Date(ms).toString(); },
+  };
+}
+
+</script>
+
+<script>
+/**
+ * People Survey — public, unauthenticated survey page (Section 12–26).
+ * No login, no ImpactLens account, no Leader Dashboard, no Manager Workspace
+ * is reachable from here. The only thing a secure link grants is: read one
+ * invitation doc by its exact token, and create a response doc carrying that
+ * same token (see firestore.rules — peopleSurveyInvitations /
+ * peopleSurveyResponses2). The link is shared with every reviewer, so the
+ * token is no longer 1:1 with one response — this page can never read back
+ * any response (public read is denied at the rule level), so "already
+ * submitted" is tracked client-side via localStorage, scoped to this token,
+ * in this browser only. Uses the SAME Firebase project as the rest of
+ * ImpactLens (js/firebase-config.js) — no new backend.
+ */
+(function(){
+"use strict";
+
+// ───────── Exactly 5 fixed approved questions (Section 15/18) — verbatim.
+// The Manager never chooses these; only {name} changes, dynamically. ─────────
+var PS_ITEMS = [
+  { id:"adapt",
+    titleEn:"Adapting to Change", titleAr:"التكيف مع التغيير",
+    qEn:"Compared with before the program, how much positive change have you observed in how {name} adjusts their approach when circumstances or priorities change?",
+    qAr:"مقارنةً بما قبل البرنامج، إلى أي مدى لاحظت تطورًا إيجابيًا في كيفية تعديل {name} لأسلوبه عندما تتغير الظروف أو الأولويات؟" },
+  { id:"ownership",
+    titleEn:"Giving Ownership", titleAr:"منح الآخرين المسؤولية",
+    qEn:"Compared with before the program, how much positive change have you observed in how {name} gives others appropriate ownership and space to make decisions?",
+    qAr:"مقارنةً بما قبل البرنامج، إلى أي مدى لاحظت تطورًا إيجابيًا في كيفية منح {name} للآخرين قدرًا مناسبًا من المسؤولية والمساحة لاتخاذ القرارات؟" },
+  { id:"pressure",
+    titleEn:"Responding Under Pressure", titleAr:"التعامل تحت الضغط",
+    qEn:"Compared with before the program, how much positive change have you observed in how {name} responds constructively under pressure or during disagreement?",
+    qAr:"مقارنةً بما قبل البرنامج، إلى أي مدى لاحظت تطورًا إيجابيًا في كيفية استجابة {name} بشكل بنّاء تحت الضغط أو أثناء الاختلاف؟" },
+  { id:"listening",
+    titleEn:"Listening to Others", titleAr:"الاستماع للآخرين",
+    qEn:"Compared with before the program, how much positive change have you observed in how {name} listens to and considers other perspectives before responding?",
+    qAr:"مقارنةً بما قبل البرنامج، إلى أي مدى لاحظت تطورًا إيجابيًا في كيفية استماع {name} لوجهات النظر الأخرى وأخذها في الاعتبار قبل الرد؟" },
+  { id:"clarity",
+    titleEn:"Creating Clarity", titleAr:"توضيح التوقعات",
+    qEn:"Compared with before the program, how much positive change have you observed in how {name} makes expectations, responsibilities, and next steps clear?",
+    qAr:"مقارنةً بما قبل البرنامج، إلى أي مدى لاحظت تطورًا إيجابيًا في كيفية توضيح {name} للتوقعات والمسؤوليات والخطوات التالية؟" }
+];
+
+// Section 16 — response scale. N/O is never zero and never lowers the score.
+var SCALE = [
+  { v:"no", en:"N/O — Not enough opportunity to observe", ar:"N/O — لم تتح لي فرصة كافية للملاحظة", shortEn:"N/O", shortAr:"N/O" },
+  { v:1, en:"No noticeable improvement", ar:"لم ألاحظ تحسنًا", shortEn:"1", shortAr:"١" },
+  { v:2, en:"Slight improvement", ar:"تحسن بسيط", shortEn:"2", shortAr:"٢" },
+  { v:3, en:"Moderate improvement", ar:"تحسن متوسط", shortEn:"3", shortAr:"٣" },
+  { v:4, en:"Clear improvement", ar:"تحسن واضح", shortEn:"4", shortAr:"٤" },
+  { v:5, en:"Strong and sustained improvement", ar:"تحسن قوي ومستمر", shortEn:"5", shortAr:"٥" }
+];
+
+// Section 5 — approved relationship options (reviewer identity is not
+// preassigned; the reviewer states their own relationship to the Leader).
+// The `en` values are the canonical stored values and MUST match the
+// psRelationships() allow-list in firestore.rules exactly.
+var RELATIONSHIPS = [
+  { en:"Colleague", ar:"زميل" },
+  { en:"Manager", ar:"مدير" },
+  { en:"Direct Report", ar:"تابع مباشر" },
+  { en:"Cross-functional Colleague", ar:"زميل من قسم آخر" },
+  { en:"Stakeholder", ar:"جهة معنية" },
+  { en:"Other Professional Relationship", ar:"علاقة مهنية أخرى" }
+];
+
+var STR = {
+  en:{
+    tag:"PEOPLE SURVEY", langBtn:"العربية",
+    eyebrow:"ImpactLens", title:"People Survey",
+    feedbackAbout:"You are providing feedback about:",
+    yourName:"Your Name", yourNamePh:"Type your full name",
+    yourRelationship:"Your Relationship to this Person",
+    chooseOne:"Choose one…",
+    optionalComment:"What positive change have you noticed most?",
+    optionalPh:"Optional",
+    submit:"Submit People Survey",
+    submitting:"Submitting…",
+    thanksTitle:"Thank you",
+    thanksBody:"Your feedback has been submitted and recorded. Thank you for taking the time to contribute.",
+    alreadyTitle:"Already submitted",
+    alreadyBody:"You have already submitted feedback from this device. Thank you.",
+    invalidTitle:"This link is no longer valid",
+    invalidBody:"We could not find a People Survey for this link. Please check the link you were sent, or contact the person who shared it with you.",
+    closedTitle:"Feedback collection is complete",
+    closedBody:"Feedback collection for this Leader is complete. Thank you — no further responses are being collected.",
+    missingName:"Please enter your name.",
+    missingRelationship:"Please choose your relationship to this person.",
+    missingAnswer:"Please answer every question — choose N/O if you had no opportunity to observe.",
+    submitFailed:"Could not submit. Please check your connection and try again.",
+    scaleLegendTitle:"Response scale"
+  },
+  ar:{
+    tag:"استبيان الزملاء", langBtn:"English",
+    eyebrow:"ImpactLens", title:"استبيان الزملاء",
+    feedbackAbout:"أنت تقدّم ملاحظات عن:",
+    yourName:"اسمك", yourNamePh:"اكتب اسمك الكامل",
+    yourRelationship:"علاقتك بهذا الشخص",
+    chooseOne:"اختر…",
+    optionalComment:"ما أبرز تغيير إيجابي لاحظته؟",
+    optionalPh:"اختياري",
+    submit:"إرسال استبيان الزملاء",
+    submitting:"جارٍ الإرسال…",
+    thanksTitle:"شكرًا لك",
+    thanksBody:"تم إرسال ملاحظاتك وتسجيلها. شكرًا لك على وقتك ومساهمتك.",
+    alreadyTitle:"تم الإرسال بالفعل",
+    alreadyBody:"لقد قمت بإرسال ملاحظاتك من هذا الجهاز بالفعل. شكرًا لك.",
+    invalidTitle:"هذا الرابط غير صالح",
+    invalidBody:"تعذّر العثور على استبيان زملاء لهذا الرابط. يُرجى التحقق من الرابط الذي تم إرساله إليك، أو التواصل مع من شاركه معك.",
+    closedTitle:"اكتمل جمع الملاحظات",
+    closedBody:"اكتمل جمع الملاحظات لهذا القائد. شكرًا لك — لم يعد يتم جمع ردود إضافية.",
+    missingName:"يُرجى إدخال اسمك.",
+    missingRelationship:"يُرجى اختيار علاقتك بهذا الشخص.",
+    missingAnswer:"يُرجى الإجابة عن كل سؤال — اختر «غير كافٍ» إذا لم تتح لك فرصة للملاحظة.",
+    submitFailed:"تعذّر الإرسال. يُرجى التحقق من الاتصال والمحاولة مرة أخرى.",
+    scaleLegendTitle:"مقياس الاستجابة"
+  }
+};
+
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, function(c){ return {"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]; }); }
+function qs(name){ try{ return new URLSearchParams(window.location.search).get(name); }catch(e){ return null; } }
+
+var lang = "en";
+try{ lang = (localStorage.getItem("impactlens_ps_lang")||"en"); }catch(e){}
+if (lang!=="ar") lang = "en";
+function t(){ return STR[lang]; }
+function applyDir(){
+  document.documentElement.lang = lang;
+  document.documentElement.dir = (lang==="ar") ? "rtl" : "ltr";
+  document.getElementById("psTag").textContent = t().tag;
+  document.getElementById("psLangBtn").textContent = t().langBtn;
+}
+document.getElementById("psLangBtn").onclick = function(){
+  lang = (lang==="ar") ? "en" : "ar";
+  try{ localStorage.setItem("impactlens_ps_lang", lang); }catch(e){}
+  applyDir(); render();
+};
+applyDir();
+
+var token = qs("t");
+var main = document.getElementById("psMain");
+var invitation = null, existingResponse = null, subjectName = "", surveyClosed = false;
+
+function showError(){
+  main.innerHTML = '<div class="ps-card"><div class="ps-error"><strong>'+esc(t().invalidTitle)+'</strong><p style="margin-top:8px">'+esc(t().invalidBody)+'</p></div></div>';
+}
+function showAlready(){
+  main.innerHTML = '<div class="ps-card"><div class="ps-done"><div class="ps-done-icon">✓</div><div class="ps-h1">'+esc(t().alreadyTitle)+'</div><p class="ps-sub">'+esc(t().alreadyBody)+'</p></div></div>';
+}
+function showClosed(){
+  main.innerHTML = '<div class="ps-card"><div class="ps-done"><div class="ps-done-icon">✓</div><div class="ps-h1">'+esc(t().closedTitle)+'</div><p class="ps-sub">'+esc(t().closedBody)+'</p></div></div>';
+}
+function showThanks(){
+  main.innerHTML = '<div class="ps-card"><div class="ps-done"><div class="ps-done-icon">✓</div><div class="ps-h1">'+esc(t().thanksTitle)+'</div><p class="ps-sub">'+esc(t().thanksBody)+'</p></div></div>';
+}
+
+function scaleRow(qid){
+  var label = (lang==="ar") ? "shortAr" : "shortEn";
+  var title = (lang==="ar") ? "ar" : "en";
+  return '<div class="ps-scale" data-qid="'+esc(qid)+'">'+ SCALE.map(function(s){
+    return '<button type="button" class="ps-seg" data-v="'+s.v+'" title="'+esc(s[title])+'">'+esc(s[label])+'</button>';
+  }).join("") + '</div>';
+}
+
+function render(){
+  if (!token){ showError(); return; }
+  if (!invitation){ showError(); return; }
+  if (surveyClosed){ showClosed(); return; }
+  if (existingResponse){ showAlready(); return; }
+
+  var titleKey = (lang==="ar") ? "titleAr" : "titleEn";
+  var qKey = (lang==="ar") ? "qAr" : "qEn";
+  var questionsHtml = PS_ITEMS.map(function(it){
+    var q = it[qKey].replace("{name}", subjectName);
+    return '<div class="ps-q" data-q="'+esc(it.id)+'"><div class="ps-q-title" dir="auto">'+esc(it[titleKey])+'</div>'+
+      '<p class="ps-q-text" dir="auto">'+esc(q)+'</p>'+ scaleRow(it.id) + '</div>';
+  }).join("");
+
+  var relOptions = '<option value="">'+esc(t().chooseOne)+'</option>' + RELATIONSHIPS.map(function(r){
+    var label = (lang==="ar") ? r.ar : r.en;
+    return '<option value="'+esc(r.en)+'">'+esc(label)+'</option>';
+  }).join("");
+
+  var legendLabel = (lang==="ar") ? "ar" : "en";
+  var legend = '<div class="ps-legend"><b>'+esc(t().scaleLegendTitle)+':</b>' + SCALE.map(function(s){ return '<span>'+esc(s[legendLabel])+'</span>'; }).join(" · ") + '</div>';
+
+  main.innerHTML =
+    '<div class="ps-card">'+
+      '<div class="ps-eyebrow">'+esc(t().eyebrow)+' · '+esc(t().title)+'</div>'+
+      '<div class="ps-h1">'+esc(t().feedbackAbout)+'</div>'+
+      '<p class="ps-sub" dir="auto"><strong>'+esc(subjectName)+'</strong></p>'+
+      '<div class="ps-field"><label for="psName">'+esc(t().yourName)+'</label><input type="text" id="psName" dir="auto" placeholder="'+esc(t().yourNamePh)+'" maxlength="80"></div>'+
+      '<div class="ps-field"><label for="psRelationship">'+esc(t().yourRelationship)+'</label><select id="psRelationship">'+relOptions+'</select></div>'+
+    '</div>'+
+    '<div class="ps-card">'+ questionsHtml + legend + '</div>'+
+    '<div class="ps-card">'+
+      '<div class="ps-field"><label for="psComment">'+esc(t().optionalComment)+'</label><textarea id="psComment" dir="auto" maxlength="500" placeholder="'+esc(t().optionalPh)+'"></textarea></div>'+
+      '<div class="ps-submitrow"><button type="button" class="ps-btn" id="psSubmit">'+esc(t().submit)+'</button></div>'+
+    '</div>';
+
+  main.querySelectorAll(".ps-scale").forEach(function(row){
+    row.querySelectorAll(".ps-seg").forEach(function(b){
+      b.onclick = function(){ row.querySelectorAll(".ps-seg").forEach(function(x){ x.classList.remove("active"); }); b.classList.add("active"); };
+    });
+  });
+
+  document.getElementById("psSubmit").onclick = submit;
+}
+
+function submit(){
+  var name = (document.getElementById("psName").value||"").trim();
+  var relationship = document.getElementById("psRelationship").value;
+  if (!name){ alert(t().missingName); return; }
+  if (!relationship){ alert(t().missingRelationship); return; }
+  var ratings = {}, unanswered = false;
+  PS_ITEMS.forEach(function(it){
+    var row = main.querySelector('.ps-scale[data-qid="'+it.id+'"]');
+    var active = row ? row.querySelector(".ps-seg.active") : null;
+    if (!active){ unanswered = true; return; }
+    var raw = active.getAttribute("data-v");
+    ratings[it.id] = (raw==="no") ? "no" : parseInt(raw,10);
+  });
+  if (unanswered){ alert(t().missingAnswer); return; }
+  var comment = (document.getElementById("psComment").value||"").trim();
+  var btn = document.getElementById("psSubmit");
+  btn.disabled = true; btn.textContent = t().submitting;
+  // Server-authoritative submission time: submitted_at defaults to now() on
+  // the server inside submit_survey_response(), never a client-supplied
+  // value, so ordering can't be gamed by a wrong/forged device clock.
+  supabaseClient.rpc("submit_survey_response", {
+    p_token: token, p_name: name, p_relationship: relationship,
+    p_adapt: String(ratings.adapt), p_ownership: String(ratings.ownership),
+    p_pressure: String(ratings.pressure), p_listening: String(ratings.listening),
+    p_clarity: String(ratings.clarity), p_comment: comment
+  }).then(function(res){
+    if (res.error) throw res.error;
+    markSubmitted();
+    existingResponse = { name:name };
+    showThanks();
+  }).catch(function(e){
+    console.error("People Survey submit failed:", e);
+    btn.disabled = false; btn.textContent = t().submit;
+    alert(t().submitFailed);
+  });
+}
+
+// Section 7 — duplicate-submission protection. There are no reviewer
+// accounts and the shared link intentionally allows many responses, so a
+// server-side "already responded" check is not possible (and would defeat
+// the point of one link for every reviewer). What we CAN prevent, per the
+// spec's "where practical" bar, is the SAME browser/session accidentally
+// resubmitting after a successful submit — tracked as a per-token flag in
+// localStorage. This is a convenience guard, not an identity system.
+function submittedKey(){ return "impactlens_ps_submitted_" + token; }
+function markSubmitted(){ try{ localStorage.setItem(submittedKey(), "1"); }catch(e){} }
+function hasSubmittedAlready(){ try{ return localStorage.getItem(submittedKey())==="1"; }catch(e){ return false; } }
+
+function boot(){
+  if (!token){ showError(); return; }
+  if (typeof SUPABASE_INIT_ERROR!=="undefined" && SUPABASE_INIT_ERROR || !supabaseClient){
+    main.innerHTML = '<div class="ps-card"><div class="ps-error">'+esc((typeof SUPABASE_INIT_ERROR!=="undefined"&&SUPABASE_INIT_ERROR)||"Could not connect. Please try again later.")+'</div></div>';
+    return;
+  }
+  supabaseClient.rpc("get_survey_invitation", { p_token: token }).then(function(res){
+    if (res.error) throw res.error;
+    var row = (res.data && res.data.length) ? res.data[0] : null;
+    if (!row){ showError(); return; }
+    invitation = row;
+    subjectName = row.subject_name || "";
+    // Section 8 — once the Manager publishes the official score, the
+    // invitation's `open` flag is set false and no further responses are
+    // accepted (also enforced server-side by submit_survey_response()).
+    surveyClosed = (row.open === false);
+    // The permanent-link model stores many responses per token with no public
+    // read access at all (see schema.sql), so "already submitted" can only
+    // be known client-side — checked here, not via a server read.
+    existingResponse = hasSubmittedAlready() ? { name:"" } : null;
+    render();
+  }).catch(function(e){
+    console.error("People Survey load failed:", e);
+    showError();
+  });
+}
+boot();
+})();
+</script>
+</body>
+</html>
